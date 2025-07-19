@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id           String    @id @default(uuid()) @db.Uuid
+  name         String
+  abn          String    @db.VarChar(15)
+  contactName  String    @db.VarChar(15)
+  contactPhone String    @db.VarChar(15)
+  contactEmail String    @db.VarChar(255)
+  createdById  String    @db.Uuid
+  createdBy    User      @relation("createdBy", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedById  String    @db.Uuid
+  updatedBy    User      @relation("updatedBy", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  createdAt    DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt    DateTime? @db.Timestamptz(6)
+
+  @@map("company")
+}
+
+model User {
+  id               String    @id @default(uuid()) @db.Uuid
+  createdById      String    @db.Uuid
+  createdBy        User      @relation("userCreatedBy", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedById      String    @db.Uuid
+  updatedBy        User      @relation("userUpdatedBy", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  createdAt        DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt        DateTime? @db.Timestamptz(6)
+  createdUsers     User[]    @relation("userCreatedBy")
+  updatedUsers     User[]    @relation("userUpdatedBy")
+  createdCompanies Company[] @relation("createdBy")
+  updatedCompanies Company[] @relation("updatedBy")
+}
