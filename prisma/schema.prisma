@@ -34,6 +34,12 @@ model Company {
 
 model User {
   id               String    @id @default(uuid()) @db.Uuid
+  userName         String    @db.VarChar(255)
+  email            String?   @db.VarChar(255)
+  firstName        String    @db.VarChar(255)
+  lastName         String    @db.VarChar(255)
+  role             UserRole
+  sub              String    @unique @db.Uuid
   createdById      String    @db.Uuid
   createdBy        User      @relation("userCreatedBy", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
   updatedById      String    @db.Uuid
@@ -45,4 +51,15 @@ model User {
   updatedUsers     User[]    @relation("userUpdatedBy")
   createdCompanies Company[] @relation("createdBy")
   updatedCompanies Company[] @relation("updatedBy")
+
+  @@map("user")
+}
+
+enum UserRole {
+  HMCAdmin        @map("HMC Admin")
+  Admin           @map("Admin")
+  FohManager      @map("FOH Manager")
+  Foh             @map("FOH")
+  BohManager      @map("BOH Manager")
+  Boh             @map("BOH")
 }
