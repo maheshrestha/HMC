@@ -15,51 +15,356 @@ datasource db {
 }
 
 model Company {
-  id           String    @id @default(uuid()) @db.Uuid
+  id           String @id @default(uuid()) @db.Uuid
   name         String
-  abn          String    @db.VarChar(15)
-  contactName  String    @db.VarChar(15)
-  contactPhone String    @db.VarChar(15)
-  contactEmail String    @db.VarChar(255)
-  createdById  String    @db.Uuid
-  createdBy    User      @relation("createdBy", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  updatedById  String    @db.Uuid
-  updatedBy    User      @relation("updatedBy", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  createdAt    DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt    DateTime  @updatedAt @db.Timestamptz(6)
-  deletedAt    DateTime? @db.Timestamptz(6)
+  abn          String @db.VarChar(15)
+  contactName  String @db.VarChar(15)
+  contactPhone String @db.VarChar(15)
+  contactEmail String @db.VarChar(255)
+
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime? @db.Timestamptz(6)
+  createdById String    @db.Uuid
+  createdBy   User      @relation("createdBy", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedById String    @db.Uuid
+  updatedBy   User      @relation("updatedBy", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@map("company")
 }
 
+model Store {
+  id       String      @id @default(uuid()) @db.Uuid
+  name     String
+  location String?
+  status   StoreStatus @default(Active)
+
+  terminals Terminal[]
+  users     UserStore[]
+  sales     Sale[] // Added relation field for Sale
+
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime? @db.Timestamptz(6)
+  createdById String    @db.Uuid
+  createdBy   User      @relation("storeCreatedBy", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedById String    @db.Uuid
+  updatedBy   User      @relation("storeUpdatedBy", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("store")
+}
+
+enum StoreStatus {
+  Active   @map("Active")
+  Inactive @map("Inactive")
+}
+
+model Terminal {
+  id           String         @id @default(uuid()) @db.Uuid
+  storeId      String         @db.Uuid
+  identifier   String
+  status       TerminalStatus @default(Offline)
+  lastSyncTime DateTime?
+
+  store Store  @relation(fields: [storeId], references: [id])
+  sales Sale[] // Added relation field for Sale
+
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime? @db.Timestamptz(6)
+  createdById String    @db.Uuid
+  createdBy   User      @relation("terminalCreatedBy", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedById String    @db.Uuid
+  updatedBy   User      @relation("terminalUpdatedBy", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("terminal")
+}
+
+enum TerminalStatus {
+  Online  @map("Online")
+  Offline @map("Offline")
+}
+
+model Item {
+  id          String     @id @default(uuid()) @db.Uuid
+  sku         String     @unique @db.VarChar(50)
+  name        String
+  description String?
+  price       Decimal    @db.Decimal(10, 2)
+  status      ItemStatus @default(Available)
+  categoryId  String     @db.Uuid
+
+  //TODO: check if category or categories
+  category ItemCategory? @relation(fields: [categoryId], references: [id])
+  sales    SaleItem[]
+
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime? @db.Timestamptz(6)
+  createdById String    @db.Uuid
+  createdBy   User      @relation("itemCreatedBy", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedById String    @db.Uuid
+  updatedBy   User      @relation("itemUpdatedBy", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("item")
+}
+
+enum ItemStatus {
+  Available   @map("Available")
+  Unavailable @map("Unavailable")
+  SoldOut     @map("Sold Out")
+}
+
+model ItemOptionCategory {
+  id     String @id @default(uuid()) @db.Uuid
+  name   String @db.VarChar(255)
+  itemId String @db.Uuid
+
+  itemIptions ItemOption[]
+
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime? @db.Timestamptz(6)
+  createdById String    @db.Uuid
+  createdBy   User      @relation("itemOptionCategoriesCreatedBy", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedById String    @db.Uuid
+  updatedBy   User      @relation("itemOptionCategoriesUpdatedBy", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("itemOptionCategory")
+}
+
+model ItemOption {
+  id                   String  @id @default(uuid()) @db.Uuid
+  name                 String  @db.VarChar(255)
+  extra                Decimal @db.Decimal(10, 2)
+  itemIptionCategoryId String  @db.Uuid
+
+  itemIptionCategory ItemOptionCategory @relation(fields: [itemIptionCategoryId], references: [id])
+
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime? @db.Timestamptz(6)
+  createdById String    @db.Uuid
+  createdBy   User      @relation("itemOptionCreatedBy", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedById String    @db.Uuid
+  updatedBy   User      @relation("itemOptionUpdatedBy", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("itemOption")
+}
+
+model ItemCategory {
+  id   String @id @default(uuid()) @db.Uuid
+  name String @db.VarChar(255)
+
+  products Item[]
+
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime? @db.Timestamptz(6)
+  createdById String    @db.Uuid
+  createdBy   User      @relation("itemCategoryCreatedBy", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedById String    @db.Uuid
+  updatedBy   User      @relation("itemCategoryUpdatedBy", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("itemCategory")
+}
+
+model UserStore {
+  userId  String @db.Uuid
+  storeId String @db.Uuid
+
+  user  User  @relation(fields: [userId], references: [id])
+  store Store @relation(fields: [storeId], references: [id])
+
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime? @db.Timestamptz(6)
+  createdById String    @db.Uuid
+  createdBy   User      @relation("userStoreCreatedBy", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedById String    @db.Uuid
+  updatedBy   User      @relation("userStoreUpdatedBy", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([userId, storeId])
+  @@map("userStore")
+}
+
+model Sale {
+  id             String  @id @default(uuid()) @db.Uuid
+  storeId        String  @db.Uuid
+  terminalId     String  @db.Uuid
+  userId         String  @db.Uuid
+  customerId     String  @db.Uuid
+  discountId     String  @db.Uuid
+  totalAmount    Decimal @db.Decimal(10, 2)
+  discountAmount Decimal @db.Decimal(10, 2)
+  note           String  @db.VarChar(255)
+
+  status   PaymentStatus @default(Paid)
+  customer Customer?     @relation(fields: [customerId], references: [id])
+  store    Store         @relation(fields: [storeId], references: [id])
+  terminal Terminal      @relation(fields: [terminalId], references: [id])
+  user     User          @relation(fields: [userId], references: [id])
+  items    SaleItem[]
+  payments Payment[]
+
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime? @db.Timestamptz(6)
+  createdById String    @db.Uuid
+  createdBy   User      @relation("saleCreatedBy", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedById String    @db.Uuid
+  updatedBy   User      @relation("saleUpdatedBy", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("sale")
+}
+
+enum PaymentStatus {
+  Paid          @map("Paid")
+  PartiallyPaid @map("Partially Paid")
+  Voided        @map("Voided")
+  Refunded      @map("Refunded")
+}
+
+model DiscountType {
+  id              String  @id @default(uuid()) @db.Uuid
+  name            String  @db.VarChar(255)
+  discription     String?
+  discountPercent Decimal @db.Decimal(10, 2)
+
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime? @db.Timestamptz(6)
+  createdById String    @db.Uuid
+  createdBy   User      @relation("discountTypeCreatedBy", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedById String    @db.Uuid
+  updatedBy   User      @relation("discountTypeUpdatedBy", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("discountType")
+}
+
+model Payment {
+  id        String        @id @default(uuid()) @db.Uuid
+  saleId    String        @db.Uuid
+  method    PaymentMethod
+  amount    Decimal       @db.Decimal(10, 2)
+  reference String?
+
+  sale Sale @relation(fields: [saleId], references: [id])
+
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime? @db.Timestamptz(6)
+  createdById String    @db.Uuid
+  createdBy   User      @relation("paymentCreatedBy", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedById String    @db.Uuid
+  updatedBy   User      @relation("paymentUpdatedBy", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("payment")
+}
+
+enum PaymentMethod {
+  CreditCard @map("Credit Card")
+  Cash       @map("Cash")
+  Voucher    @map("Voucher")
+  GiftCard   @map("Gift Card")
+}
+
+model SaleItem {
+  id        String  @id @default(uuid()) @db.Uuid
+  saleId    String  @db.Uuid
+  itemId    String  @db.Uuid
+  quantity  Int
+  unitPrice Decimal @db.Decimal(10, 2)
+  discount  Decimal @db.Decimal(10, 2)
+
+  sale Sale @relation(fields: [saleId], references: [id])
+  item Item @relation(fields: [itemId], references: [id])
+
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime? @db.Timestamptz(6)
+  createdById String    @db.Uuid
+  createdBy   User      @relation("saleItemCreatedBy", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedById String    @db.Uuid
+  updatedBy   User      @relation("saleItemUpdatedBy", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("saleItem")
+}
+
+model Customer {
+  id    String  @id @default(uuid()) @db.Uuid
+  name  String
+  email String? @unique
+  phone String? @unique
+
+  sales       Sale[]
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime? @db.Timestamptz(6)
+  createdById String    @db.Uuid
+  createdBy   User      @relation("customerCreatedBy", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedById String    @db.Uuid
+  updatedBy   User      @relation("customerUpdatedBy", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("custormer")
+}
+
 model User {
-  id               String    @id @default(uuid()) @db.Uuid
-  userName         String    @db.VarChar(255)
-  email            String?   @db.VarChar(255)
-  firstName        String    @db.VarChar(255)
-  lastName         String    @db.VarChar(255)
-  role             UserRole
-  sub              String    @unique @db.Uuid
-  createdById      String    @db.Uuid
-  createdBy        User      @relation("userCreatedBy", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  updatedById      String    @db.Uuid
-  updatedBy        User      @relation("userUpdatedBy", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  createdAt        DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt        DateTime  @updatedAt @db.Timestamptz(6)
-  deletedAt        DateTime? @db.Timestamptz(6)
-  createdUsers     User[]    @relation("userCreatedBy")
-  updatedUsers     User[]    @relation("userUpdatedBy")
-  createdCompanies Company[] @relation("createdBy")
-  updatedCompanies Company[] @relation("updatedBy")
+  id        String      @id @default(uuid()) @db.Uuid
+  userName  String      @db.VarChar(255)
+  email     String?     @db.VarChar(255)
+  firstName String      @db.VarChar(255)
+  lastName  String      @db.VarChar(255)
+  role      UserRole
+  sub       String      @unique @db.Uuid
+  stores    UserStore[]
+  sales     Sale[]
+
+  createdById String    @db.Uuid
+  createdBy   User      @relation("userCreatedBy", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedById String    @db.Uuid
+  updatedBy   User      @relation("userUpdatedBy", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime? @db.Timestamptz(6)
+
+  createdUsers                User[]               @relation("userCreatedBy")
+  updatedUsers                User[]               @relation("userUpdatedBy")
+  createdCompanies            Company[]            @relation("createdBy")
+  updatedCompanies            Company[]            @relation("updatedBy")
+  createdStores               Store[]              @relation("storeCreatedBy")
+  updatedStores               Store[]              @relation("storeUpdatedBy")
+  createdTerminals            Terminal[]           @relation("terminalCreatedBy")
+  updatedTerminals            Terminal[]           @relation("terminalUpdatedBy")
+  createdUserStores           UserStore[]          @relation("userStoreCreatedBy")
+  updatedUserStores           UserStore[]          @relation("userStoreUpdatedBy")
+  createdItemCategory         ItemCategory[]       @relation("itemCategoryCreatedBy")
+  updatedItemCategory         ItemCategory[]       @relation("itemCategoryUpdatedBy")
+  createdItems                Item[]               @relation("itemCreatedBy")
+  updatedItems                Item[]               @relation("itemUpdatedBy")
+  createdSales                Sale[]               @relation("saleCreatedBy")
+  updatedSlaes                Sale[]               @relation("saleUpdatedBy")
+  createdSaleItems            SaleItem[]           @relation("saleItemCreatedBy")
+  updatedSlaeItems            SaleItem[]           @relation("saleItemUpdatedBy")
+  createdPayments             Payment[]            @relation("paymentCreatedBy")
+  updatedPayments             Payment[]            @relation("paymentUpdatedBy")
+  createdDiscountTypes        DiscountType[]       @relation("discountTypeCreatedBy")
+  updatedDiscountTypes        DiscountType[]       @relation("discountTypeUpdatedBy")
+  createdCustomers            Customer[]           @relation("customerCreatedBy")
+  updatedCustomers            Customer[]           @relation("customerUpdatedBy")
+  createdItemOptions          ItemOption[]         @relation("itemOptionCreatedBy")
+  updatedItemOptions          ItemOption[]         @relation("itemOptionUpdatedBy")
+  createdItemOptionCategories ItemOptionCategory[] @relation("itemOptionCategoriesCreatedBy")
+  updatedItemOptionCategories ItemOptionCategory[] @relation("itemOptionCategoriesUpdatedBy")
 
   @@map("user")
 }
 
 enum UserRole {
-  HMCAdmin        @map("HMC Admin")
-  Admin           @map("Admin")
-  FohManager      @map("FOH Manager")
-  Foh             @map("FOH")
-  BohManager      @map("BOH Manager")
-  Boh             @map("BOH")
+  HMCAdmin   @map("HMC Admin")
+  Admin      @map("Admin")
+  FohManager @map("FOH Manager")
+  Foh        @map("FOH")
+  BohManager @map("BOH Manager")
+  Boh        @map("BOH")
 }
