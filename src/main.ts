@@ -10,14 +10,16 @@ async function bootstrap(): Promise<void> {
 
   const config = new DocumentBuilder()
     .setTitle('HMC API')
-    .setDescription('API documentation for HMC')
+    .setDescription('API documentation for POS(Point of Sale)')
     .setVersion('1.0')
+    .addTag('users', 'User management endpoints')
+    .addServer(`http://localhost:${process.env.PORT || 8082}`, 'Development server')
     .build();
   const document = SwaggerModule.createDocument(app, config);
 
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(8081);
+  await app.listen(process.env.PORT || 8082);
 }
 
 bootstrap();
