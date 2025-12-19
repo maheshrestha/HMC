@@ -33,7 +33,7 @@ export default [
       'arrow-parens': ['error', 'as-needed'],
       'consistent-return': ['error'],
       'no-undef': 'warn',
-      'no-console': 'warn',
+      'no-console': 'off',
       'no-debugger': 'warn',
       'no-dupe-class-members': 'off',
       'no-fallthrough': ['error', { allowEmptyCase: true }],

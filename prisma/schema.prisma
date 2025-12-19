@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -320,10 +319,10 @@ model User {
   stores    UserStore[]
   sales     Sale[]
 
-  createdById String    @db.Uuid
-  createdBy   User      @relation("userCreatedBy", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  updatedById String    @db.Uuid
-  updatedBy   User      @relation("userUpdatedBy", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  createdById String?   @db.Uuid
+  createdBy   User?     @relation("userCreatedBy", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedById String?   @db.Uuid
+  updatedBy   User?     @relation("userUpdatedBy", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
   createdAt   DateTime  @default(now()) @db.Timestamptz(6)
   updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
   deletedAt   DateTime? @db.Timestamptz(6)
@@ -367,4 +366,25 @@ enum UserRole {
   Foh        @map("FOH")
   BohManager @map("BOH Manager")
   Boh        @map("BOH")
+}
+
+model OutboxEvent {
+  id        String       @id @default(uuid()) @db.Uuid
+  type      OutboxType
+  payload   Json
+  version   Int
+  status    OutboxStatus @default(PENDING)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@map("outboxEvent")
+}
+
+enum OutboxType {
+  USER_CREATED
+}
+
+enum OutboxStatus {
+  PENDING
+  PUBLISHED
 }
