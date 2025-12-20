@@ -5,12 +5,14 @@ import { UsersRepository } from './repository/users.repository';
 import { PrismaService } from '@src/infra/database/prisma/prisma.service';
 import { UserCreatedHandler } from './handlers/user-created.handler';
 import { ProcessedEventRepository } from './repository/processed-event.repository';
+import { IsUniqueConstraint } from '../../common/decorators/is-unique.decorator';
 
 const EventHandlers = [UserCreatedHandler];
 const Repositories = [UsersRepository, ProcessedEventRepository];
+const Validators = [IsUniqueConstraint];
 
 @Module({
   controllers: [UsersController],
-  providers: [UsersService, PrismaService, ...Repositories, ...EventHandlers],
+  providers: [UsersService, PrismaService, ...Repositories, ...EventHandlers, ...Validators],
 })
 export class UsersModule {}

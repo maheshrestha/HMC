@@ -1,6 +1,7 @@
 import { UserRole } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsString, IsNotEmpty, IsEnum } from 'class-validator';
+import { IsUnique } from '../../../common/decorators/is-unique.decorator';
 
 export class CreateUserDto {
   @ApiProperty({
@@ -10,6 +11,7 @@ export class CreateUserDto {
   })
   @IsEmail()
   @IsNotEmpty()
+  @IsUnique('user', 'email', { message: 'User with this email already exists' })
   email: string;
 
   @ApiProperty({
@@ -40,12 +42,13 @@ export class CreateUserDto {
   role: UserRole;
 
   @ApiProperty({
-    description: 'Authentication provider subject identifier',
+    description: 'Authentication provider subject identifier (unique)',
     example: 'auth0|123456789',
     minLength: 1,
   })
   @IsString()
   @IsNotEmpty()
+  @IsUnique('user', 'sub', { message: 'User with this sub already exists' })
   sub: string;
 
   @ApiProperty({
@@ -55,5 +58,6 @@ export class CreateUserDto {
   })
   @IsString()
   @IsNotEmpty()
+  @IsUnique('user', 'userName', { message: 'User with this userName already exists' })
   userName: string;
 }
