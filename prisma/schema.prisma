@@ -248,7 +248,7 @@ model Payment {
   amount    Decimal       @db.Decimal(10, 2)
   reference String?
 
-  sale Sale @relation(fields: [saleId], references: [id])
+  sale      Sale @relation(fields: [saleId], references: [id])
 
   createdAt   DateTime  @default(now()) @db.Timestamptz(6)
   updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
@@ -387,4 +387,11 @@ enum OutboxType {
 enum OutboxStatus {
   PENDING
   PUBLISHED
+}
+
+model UserProcessedEvent {
+  id        String       @id @default(uuid()) @db.Uuid
+  processedAt DateTime @default(now())
+
+  @@map("userProcessedEvent")
 }

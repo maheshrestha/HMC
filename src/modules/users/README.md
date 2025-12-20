@@ -49,8 +49,8 @@ POST /api/users
   "lastName": "Doe",
   "role": "Admin",
   "sub": "123e4567-e89b-12d3-a456-4266141740009",
-  "createdAt": "2025-12-19T10:00:00.000Z",
-  "updatedAt": "2025-12-19T10:00:00.000Z"
+  "createdAt": "2025-12-20T10:00:00.000Z",
+  "updatedAt": "2025-12-20T10:00:00.000Z"
 }
 ```
 
@@ -70,8 +70,8 @@ GET /api/users
     "lastName": "Doe",
     "role": "Admin",
     "sub": "auth0|123456789",
-    "createdAt": "2025-12-19T10:00:00.000Z",
-    "updatedAt": "2025-12-19T10:00:00.000Z"
+    "createdAt": "2025-12-20T10:00:00.000Z",
+    "updatedAt": "2025-12-20T10:00:00.000Z"
   }
 ]
 ```
@@ -94,8 +94,8 @@ GET /api/users/{id}
   "lastName": "Doe",
   "role": "Admin",
   "sub": "auth0|123456789",
-  "createdAt": "2025-12-19T10:00:00.000Z",
-  "updatedAt": "2025-12-19T10:00:00.000Z"
+  "createdAt": "2025-12-20T10:00:00.000Z",
+  "updatedAt": "2025-12-20T10:00:00.000Z"
 }
 ```
 
@@ -125,8 +125,8 @@ PATCH /api/users/{id}
   "lastName": "Doe",
   "role": "Admin",
   "sub": "auth0|123456789",
-  "createdAt": "2025-12-19T10:00:00.000Z",
-  "updatedAt": "2025-12-19T10:05:00.000Z"
+  "createdAt": "2025-12-20T10:00:00.000Z",
+  "updatedAt": "2025-12-20T10:05:00.000Z"
 }
 ```
 
@@ -148,9 +148,9 @@ DELETE /api/users/{id}
   "lastName": "Doe",
   "role": "Admin",
   "sub": "auth0|123456789",
-  "createdAt": "2025-12-19T10:00:00.000Z",
-  "updatedAt": "2025-12-19T10:05:00.000Z",
-  "deletedAt": "2025-12-19T10:10:00.000Z"
+  "createdAt": "2025-12-20T10:00:00.000Z",
+  "updatedAt": "2025-12-20T10:05:00.000Z",
+  "deletedAt": "2025-12-20T10:10:00.000Z"
 }
 ```
 
@@ -185,19 +185,32 @@ The system supports the following user roles:
 
 The user module publishes events through the outbox pattern for reliable event processing:
 
-#### User Created Event
+#### User Created Event (V1)
 - **Type**: `USER_CREATED`
-- **Payload**:
+- **Version**: `1`
+- **Payload Structure**:
 ```json
 {
-  "userId": "123e4567-e89b-12d3-a456-426614174000"
+  "id": "event-uuid",
+  "userId": "user-uuid",
+  "storeId": "store-uuid",
+  "role": "user-role-enum-value"
 }
 ```
 
 ### Event Handlers
 
-- **UserCreatedHandler**: Logs user creation events
+- **UserCreatedHandler**: Processes user creation events with idempotency
+  - Logs user creation details
+  - Ensures events are processed only once using UserProcessedEvent tracking
 - **ProcessedEventHandler**: Handles processed event notifications
+
+### Idempotency Mechanism
+
+Events are processed with idempotency guarantees using the `UserProcessedEvent` table:
+- Each event ID is tracked to prevent duplicate processing
+- Events that have already been processed are skipped
+- This ensures reliable event handling even with retries or duplicate deliveries
 
 ## Database Schema
 
@@ -214,6 +227,14 @@ CREATE TABLE "user" (
   "createdAt" TIMESTAMPTZ DEFAULT NOW(),
   "updatedAt" TIMESTAMPTZ DEFAULT NOW(),
   "deletedAt" TIMESTAMPTZ
+);
+```
+
+### UserProcessedEvent Model
+```sql
+CREATE TABLE "userProcessedEvent" (
+  "id" UUID PRIMARY KEY,
+  "processedAt" TIMESTAMPTZ DEFAULT NOW()
 );
 ```
 
