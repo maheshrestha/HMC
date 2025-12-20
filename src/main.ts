@@ -19,7 +19,7 @@ async function bootstrap(): Promise<void> {
 
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(process.env.PORT || 8082);
+  await app.listen(process.env.PORT);
 }
 
 bootstrap();

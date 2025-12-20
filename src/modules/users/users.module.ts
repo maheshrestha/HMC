@@ -4,11 +4,13 @@ import { UsersController } from './users.controller';
 import { UsersRepository } from './repository/users.repository';
 import { PrismaService } from '@src/infra/database/prisma/prisma.service';
 import { UserCreatedHandler } from './handlers/user-created.handler';
+import { ProcessedEventRepository } from './repository/processed-event.repository';
 
 const EventHandlers = [UserCreatedHandler];
+const Repositories = [UsersRepository, ProcessedEventRepository];
 
 @Module({
   controllers: [UsersController],
-  providers: [UsersService, UsersRepository, PrismaService, ...EventHandlers],
+  providers: [UsersService, PrismaService, ...Repositories, ...EventHandlers],
 })
 export class UsersModule {}
