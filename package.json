@@ -26,13 +26,16 @@
     "db:reset": "prisma migrate reset",
     "db:generate": "prisma generate",
     "db:generate-migration": "prisma migrate dev --create-only",
-    "db-test:deploy": "dotenv -e .env.test prisma migrate deploy"
+    "db-test:deploy": "dotenv -e .env.test prisma migrate deploy",
+    "lint-staged": "lint-staged"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.5",
     "@nestjs/core": "^11.1.5",
     "@nestjs/cqrs": "^11.0.3",
+    "@nestjs/jwt": "^11.0.2",
     "@nestjs/mapped-types": "*",
+    "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.1.5",
     "@nestjs/swagger": "^11.2.3",
     "@prisma/client": "^6.12.0",
@@ -41,6 +44,8 @@
     "class-validator": "^0.14.3",
     "eslint-plugin-import": "^2.32.0",
     "lint-staged": "^16.1.2",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
     "prisma": "^6.12.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",

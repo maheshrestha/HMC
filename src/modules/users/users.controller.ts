@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -11,15 +21,22 @@ import {
   ApiNotFoundResponse,
   ApiBadRequestResponse,
   ApiInternalServerErrorResponse,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { User } from '@prisma/client';
+import { JwtAuthGuard } from '@modules/auth/jwt-auth.guard';
+import { GetCurrentUser } from '@modules/auth/get-current-user.decorator';
+import { CurrentUser } from '../auth/dto/current-user.dto';
 
 @ApiTags('users')
 @Controller('users')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
+  @UseGuards() // Override class-level guard to make this endpoint public
   @ApiOperation({
     summary: 'Create a new user',
     description:
@@ -87,6 +104,38 @@ export class UsersController {
   @ApiInternalServerErrorResponse({ description: 'Internal server error.' })
   async findAll(): Promise<User[]> {
     return this.usersService.findAll();
+  }
+
+  @Get('me')
+  @ApiOperation({
+    summary: 'Get current authenticated user',
+    description: 'Retrieves the profile of the currently authenticated user.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Current user information retrieved successfully.',
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', example: '123e4567-e89b-12d3-a456-426614174000' },
+        userName: { type: 'string', example: 'johndoe' },
+        email: { type: 'string', example: 'john.doe@example.com' },
+        firstName: { type: 'string', example: 'John' },
+        lastName: { type: 'string', example: 'Doe' },
+        role: {
+          type: 'string',
+          enum: ['HMCAdmin', 'Admin', 'FohManager', 'Foh', 'BohManager', 'Boh'],
+          example: 'Admin',
+        },
+        sub: { type: 'string', example: 'auth0|123456789' },
+        createdAt: { type: 'string', format: 'date-time' },
+        updatedAt: { type: 'string', format: 'date-time' },
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({ description: 'Internal server error.' })
+  async getCurrentUser(@GetCurrentUser() user: CurrentUser): Promise<User> {
+    return this.usersService.findOne(user.id);
   }
 
   @Get(':id')
