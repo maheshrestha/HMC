@@ -3,7 +3,7 @@ import { UsersService } from './users.service';
 import { UsersRepository } from './repository/users.repository';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UserRole, User } from '@prisma/client';
+import { UserRole, User } from 'prisma/generated/client';
 
 describe('UsersService', () => {
   let service: UsersService;

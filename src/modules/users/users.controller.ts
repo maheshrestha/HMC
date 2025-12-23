@@ -7,7 +7,7 @@ import {
   Param,
   Delete,
   HttpStatus,
-  UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -23,20 +23,19 @@ import {
   ApiInternalServerErrorResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { User } from '@prisma/client';
-import { JwtAuthGuard } from '@modules/auth/jwt-auth.guard';
-import { GetCurrentUser } from '@modules/auth/get-current-user.decorator';
-import { CurrentUser } from '../auth/dto/current-user.dto';
+import { User } from 'prisma/generated/client';
+import { GetCurrentUser } from '@modules/auth/decorators/get-current-user.decorator';
+import { CurrentUser } from '@modules/auth/dto/current-user.dto';
+import { Public } from '@modules/auth/decorators/public.decorator';
 
 @ApiTags('users')
 @Controller('users')
-@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  @UseGuards() // Override class-level guard to make this endpoint public
+  @Public()
   @ApiOperation({
     summary: 'Create a new user',
     description:
@@ -72,6 +71,7 @@ export class UsersController {
   }
 
   @Get()
+  @Public()
   @ApiOperation({
     summary: 'Get all users',
     description:
@@ -139,6 +139,7 @@ export class UsersController {
   }
 
   @Get(':id')
+  @Public()
   @ApiOperation({
     summary: 'Get a user by ID',
     description:
@@ -174,7 +175,7 @@ export class UsersController {
   })
   @ApiNotFoundResponse({ description: 'User not found.' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error.' })
-  async findOne(@Param('id') id: string): Promise<User | null> {
+  async findOne(@Param('id', ParseUUIDPipe) id: string): Promise<User | null> {
     return this.usersService.findOne(id);
   }
 
@@ -215,7 +216,10 @@ export class UsersController {
   @ApiNotFoundResponse({ description: 'User not found.' })
   @ApiBadRequestResponse({ description: 'Invalid input data or validation failed.' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error.' })
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto): Promise<User> {
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ): Promise<User> {
     return this.usersService.update(id, updateUserDto);
   }
 
@@ -255,7 +259,8 @@ export class UsersController {
   })
   @ApiNotFoundResponse({ description: 'User not found.' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error.' })
-  async remove(@Param('id') id: string): Promise<User> {
+  @Public()
+  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<User> {
     return this.usersService.remove(id);
   }
 }

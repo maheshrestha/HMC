@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { OutboxRepository } from './outbox.repository';
 import { PrismaService } from '../database/prisma/prisma.service';
-import { OutboxEvent, OutboxStatus, OutboxType } from '@prisma/client';
+import { OutboxEvent, OutboxStatus, OutboxType } from 'prisma/generated/client';
 
 describe('OutboxRepository', () => {
   let repository: OutboxRepository;

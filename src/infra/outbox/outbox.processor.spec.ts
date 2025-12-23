@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { OutboxProcessor } from './outbox.processor';
 import { OutboxRepository } from './outbox.repository';
 import { EventBus } from '@nestjs/cqrs';
-import { OutboxEvent, OutboxStatus, OutboxType } from '@prisma/client';
+import { OutboxEvent, OutboxStatus, OutboxType } from 'prisma/generated/client';
 
 describe('OutboxProcessor', () => {
   let processor: OutboxProcessor;

@@ -1,4 +1,4 @@
-import { OutboxType } from '@prisma/client';
+import { OutboxType } from 'prisma/generated/client';
 
 /**
  * Event representing the creation of a new user (Version 1).

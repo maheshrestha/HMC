@@ -5,7 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "./generated"
 }
 
 datasource db {
@@ -310,7 +311,7 @@ model Customer {
 
 model User {
   id        String      @id @default(uuid()) @db.Uuid
-  userName  String      @db.VarChar(255)
+  userName  String      @unique @db.VarChar(255)
   email     String?     @db.VarChar(255)
   firstName String      @db.VarChar(255)
   lastName  String      @db.VarChar(255)

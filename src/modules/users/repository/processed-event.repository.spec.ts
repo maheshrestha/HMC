@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProcessedEventRepository } from './processed-event.repository';
-import { PrismaService } from '@database/prisma/prisma.service';
-import { UserProcessedEvent } from '@prisma/client';
+import { PrismaService } from '@src/infra/database/prisma/prisma.service';
+import { UserProcessedEvent } from 'prisma/generated/client';
 
 describe('ProcessedEventRepository', () => {
   let repository: ProcessedEventRepository;
