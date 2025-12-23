@@ -12,6 +12,7 @@
     "^@modules/(.*)$": "<rootDir>/src/modules/$1",
     "^@common/(.*)$": "<rootDir>/src/common/$1",
     "^@database/(.*)$": "<rootDir>/src/infra/database/$1",
-    "^@test/(.*)$": "<rootDir>/test/$1"
+    "^@test/(.*)$": "<rootDir>/test/$1",
+    "^prisma/(.*)$": "<rootDir>/prisma/$1"
   }
 }
