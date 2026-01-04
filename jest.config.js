@@ -2,14 +2,16 @@ module.exports = {
   preset: 'ts-jest',
   moduleFileExtensions: ['js', 'json', 'ts'],
   rootDir: 'src',
-  testRegex: '.*\\.(spec|e2e-spec)\\.ts$',
+  testMatch: ['**/*.spec.ts'],
   transform: {
     '^.+\\.(t|j)s$': 'ts-jest',
   },
   collectCoverageFrom: ['**/*.(t|j)s'],
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
-  setupFiles: ['<rootDir>/../test/jest.env.ts'],
+  // setupFiles: ['<rootDir>/../test/jest.env.ts'],
+  // setupFilesAfterEnv: ['<rootDir>/../test/jest.env.ts'],
+  moduleDirectories: ['node_modules', '<rootDir>'],
   moduleNameMapper: {
     '^@src/(.*)$': '<rootDir>/$1',
     '^@modules/(.*)$': '<rootDir>/modules/$1',
@@ -18,4 +20,6 @@ module.exports = {
     '^@test/(.*)$': '<rootDir>/../test/$1',
     '^prisma/(.*)$': '<rootDir>/../prisma/$1',
   },
+  transformIgnorePatterns: ['/node_modules/(?!(@faker-js/faker)/)'],
+  // projects: ['<rootDir>/../jest.config.js', '<rootDir>/../test/jest-e2e.json'],
 };

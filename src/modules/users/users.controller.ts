@@ -71,7 +71,6 @@ export class UsersController {
   }
 
   @Get()
-  @Public()
   @ApiOperation({
     summary: 'Get all users',
     description:
@@ -139,7 +138,6 @@ export class UsersController {
   }
 
   @Get(':id')
-  @Public()
   @ApiOperation({
     summary: 'Get a user by ID',
     description:
@@ -175,7 +173,7 @@ export class UsersController {
   })
   @ApiNotFoundResponse({ description: 'User not found.' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error.' })
-  async findOne(@Param('id', ParseUUIDPipe) id: string): Promise<User | null> {
+  async findOne(@Param('id', ParseUUIDPipe) id: string): Promise<User> {
     return this.usersService.findOne(id);
   }
 
@@ -259,7 +257,6 @@ export class UsersController {
   })
   @ApiNotFoundResponse({ description: 'User not found.' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error.' })
-  @Public()
   async remove(@Param('id', ParseUUIDPipe) id: string): Promise<User> {
     return this.usersService.remove(id);
   }

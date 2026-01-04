@@ -3,7 +3,7 @@ version: '3.9'
 
 # Create a db for dev
 services:
-  db:
+  db_dev:
     image: postgres:13
     # command: postgres -c 'max_connections=5'
     restart: always

@@ -18,7 +18,7 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:e2e": "yarn docker-test:up && yarn db-test:deploy && DOTENV_CONFIG_PATH=.env.test jest --config ./test/jest-e2e.ts && yarn docker-test:down",
     "prepare": "husky",
     "db:migrate": "prisma migrate deploy",
     "db:seed": "prisma db seed",
@@ -27,7 +27,9 @@
     "db:generate": "prisma generate",
     "db:generate-migration": "prisma migrate dev --create-only",
     "db-test:deploy": "dotenv -e .env.test prisma migrate deploy",
-    "lint-staged": "lint-staged"
+    "lint-staged": "lint-staged",
+    "docker-test:up": "docker-compose -f docker-compose.test.yml up -d",
+    "docker-test:down": "docker-compose -f docker-compose.test.yml down"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.5",
@@ -43,6 +45,7 @@
     "@prisma/extension-optimize": "^2.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
+    "delay-cli": "^3.0.0",
     "eslint-plugin-import": "^2.32.0",
     "lint-staged": "^16.1.2",
     "passport": "^0.7.0",
@@ -64,6 +67,7 @@
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "dotenv": "^17.2.3",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^9.31.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.0.0",

@@ -21,70 +21,114 @@ function applyIncludeFilters(include: IncludeArgs): void {
 }
 
 // Models to skip soft-delete (e.g., Outbox)
-const SKIP_SOFT_DELETE_MODELS = ['Outbox'];
+const SKIP_SOFT_DELETE_MODELS = ['OutboxEvent'];
 
-export const softDeleteExtension = Prisma.defineExtension({
-  name: 'prisma-soft-delete-extension',
-  query: {
-    $allModels: {
-      async delete({ model, args, query }) {
-        if (SKIP_SOFT_DELETE_MODELS.includes(model)) {
+export const softDeleteExtension = Prisma.defineExtension(client =>
+  client.$extends({
+    name: 'prisma-soft-delete-extension',
+    query: {
+      $allModels: {
+        async update({ model, args, query }) {
+          if (SKIP_SOFT_DELETE_MODELS.includes(model)) {
+            return query(args);
+          }
+
+          return query({
+            ...args,
+            where: { ...((args.where ?? {}) as Record<string, unknown>), deletedAt: null },
+          });
+        },
+        async updateMany({ model, args, query }) {
+          if (SKIP_SOFT_DELETE_MODELS.includes(model)) {
+            return query(args);
+          }
+
+          return query({
+            ...args,
+            where: { ...((args.where ?? {}) as Record<string, unknown>), deletedAt: null },
+          });
+        },
+        async delete({ model, args, query }) {
+          if (SKIP_SOFT_DELETE_MODELS.includes(model)) {
+            return query(args);
+          }
+          const modelClient = client[model];
+
+          return modelClient.update({
+            ...args,
+            data: { deletedAt: new Date() },
+          });
+        },
+
+        async deleteMany({ model, args, query }) {
+          if (SKIP_SOFT_DELETE_MODELS.includes(model)) {
+            return query(args);
+          }
+
+          const modelClient = client[model];
+
+          return modelClient.updateMany({
+            ...args,
+            data: { deletedAt: new Date() },
+          });
+        },
+
+        async findUnique({ model, args, query }) {
+          if (SKIP_SOFT_DELETE_MODELS.includes(model)) {
+            return query(args);
+          }
+
+          return query({
+            ...args,
+            where: { ...((args.where ?? {}) as Record<string, unknown>), deletedAt: null },
+          });
+        },
+        async findUniqueOrThrow({ model, args, query }) {
+          if (SKIP_SOFT_DELETE_MODELS.includes(model)) {
+            return query(args);
+          }
+
+          return query({
+            ...args,
+            where: { ...((args.where ?? {}) as Record<string, unknown>), deletedAt: null },
+          });
+        },
+
+        async findFirst({ model, args, query }) {
+          if (SKIP_SOFT_DELETE_MODELS.includes(model)) {
+            return query(args);
+          }
+
+          return query({
+            ...args,
+            where: { ...((args.where ?? {}) as Record<string, unknown>), deletedAt: null },
+          });
+        },
+        async findFirstOrThrow({ model, args, query }) {
+          if (SKIP_SOFT_DELETE_MODELS.includes(model)) {
+            return query(args);
+          }
+
+          return query({
+            ...args,
+            where: { ...((args.where ?? {}) as Record<string, unknown>), deletedAt: null },
+          });
+        },
+
+        async findMany({ model, args, query }) {
+          if (SKIP_SOFT_DELETE_MODELS.includes(model)) {
+            return query(args);
+          }
+
+          args.where = { ...((args.where ?? {}) as Record<string, unknown>), deletedAt: null };
+
+          if (args.include) {
+            applyIncludeFilters(args.include as IncludeArgs);
+          }
+
           return query(args);
-        }
-
-        return query({
-          ...args,
-          action: 'update',
-          data: { deletedAt: new Date() },
-        });
-      },
-
-      async deleteMany({ model, args, query }) {
-        if (SKIP_SOFT_DELETE_MODELS.includes(model)) {
-          return query(args);
-        }
-
-        return query({
-          ...args,
-          data: { deletedAt: new Date() },
-        });
-      },
-
-      async findUnique({ model, args, query }) {
-        if (SKIP_SOFT_DELETE_MODELS.includes(model)) {
-          return query(args);
-        }
-
-        return query({
-          ...args,
-          where: { ...((args.where ?? {}) as Record<string, unknown>), deletedAt: null },
-        });
-      },
-
-      async findFirst({ model, args, query }) {
-        if (SKIP_SOFT_DELETE_MODELS.includes(model)) {
-          return query(args);
-        }
-
-        return query({
-          ...args,
-          where: { ...((args.where ?? {}) as Record<string, unknown>), deletedAt: null },
-        });
-      },
-
-      async findMany({ model, args, query }) {
-        if (SKIP_SOFT_DELETE_MODELS.includes(model)) {
-          return query(args);
-        }
-
-        args.where = { ...((args.where ?? {}) as Record<string, unknown>), deletedAt: null };
-
-        if (args.include) {
-          applyIncludeFilters(args.include as IncludeArgs);
-        }
-
-        return query(args);
+        },
       },
     },
-  },
-});
+  }),
+);

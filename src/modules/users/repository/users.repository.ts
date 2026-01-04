@@ -30,8 +30,8 @@ export class UsersRepository {
     return this.prisma.user.findMany();
   }
 
-  async findOne(id: string): Promise<User | null> {
-    return this.prisma.user.findUnique({
+  async findOne(id: string): Promise<User> {
+    return this.prisma.user.findUniqueOrThrow({
       where: { id },
     });
   }

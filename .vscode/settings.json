@@ -2,8 +2,16 @@
   "jest.jestCommandLine": "yarn test",
   "jest.shell": "/bin/zsh",
   "jest.runMode": "on-demand",
-  "jest.nodeEnv": {
-    "NODE_OPTIONS": "--experimental-vm-modules --no-warnings"
-  },
-  "jest.debugMode": true
+  "jest.debugMode": true,
+  "jest.virtualFolders": [
+    {
+      "name": "unit-tests",
+      "runMode": "on-demand", 
+    },
+    {
+      "name": "e2e-tests", 
+      "runMode": "on-demand", 
+      "jestCommandLine": "yarn test:e2e"
+    }
+  ]
 }
