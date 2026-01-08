@@ -6,11 +6,11 @@
   "jest.virtualFolders": [
     {
       "name": "unit-tests",
-      "runMode": "on-demand", 
+      "runMode": "on-demand",
     },
     {
-      "name": "e2e-tests", 
-      "runMode": "on-demand", 
+      "name": "e2e-tests",
+      "runMode": "on-demand",
       "jestCommandLine": "yarn test:e2e"
     }
   ]

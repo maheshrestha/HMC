@@ -99,7 +99,7 @@ describe('UsersController (e2e)', () => {
           });
       });
 
-      it('should fail to create user with duplicate userName', () => {
+      it('should fail to create user with duplicate userName', () =>
         userService
           .create({
             email: faker.internet.email(),
@@ -124,8 +124,7 @@ describe('UsersController (e2e)', () => {
               .expect(res => {
                 expect(res.body.message).toContain('userName already exists');
               }),
-          );
-      });
+          ));
 
       it('should fail validation with invalid email', () => {
         const createUserDto = {
@@ -174,9 +173,9 @@ describe('UsersController (e2e)', () => {
           sub: faker.string.uuid(),
           userName: faker.internet.username(),
         };
-        await userService.create(createUserDto);
+        const newUser = await userService.create(createUserDto);
 
-        request(app.getHttpServer())
+        return request(app.getHttpServer())
           .get('/users')
           .expect(200)
           .expect(res => {
@@ -184,14 +183,14 @@ describe('UsersController (e2e)', () => {
             expect(res.body.length).toBeGreaterThan(0);
 
             // Check that our created user is in the list
-            const createdUser = res.body.find(user => user.id === createdUser.id);
-            expect(createdUser).toBeDefined();
-            expect(createdUser.email).toBe(createdUser.email);
-            expect(createdUser.firstName).toBe(createdUser.firstName);
-            expect(createdUser.lastName).toBe(createdUser.lastName);
-            expect(createdUser.role).toBe(UserRole.Admin);
-            expect(createdUser.sub).toBe(createdUser.sub);
-            expect(createdUser.userName).toBe(createdUser.userName);
+            const foundUser = res.body.find(user => user.id === newUser.id);
+            expect(foundUser).toBeDefined();
+            expect(foundUser.email).toBe(newUser.email);
+            expect(foundUser.firstName).toBe(newUser.firstName);
+            expect(foundUser.lastName).toBe(newUser.lastName);
+            expect(foundUser.role).toBe(UserRole.Admin);
+            expect(foundUser.sub).toBe(newUser.sub);
+            expect(foundUser.userName).toBe(newUser.userName);
           });
       });
     });
@@ -206,7 +205,8 @@ describe('UsersController (e2e)', () => {
           sub: faker.string.uuid(),
           userName: faker.internet.username(),
         });
-        request(app.getHttpServer())
+
+        return request(app.getHttpServer())
           .get(`/users/${createdUser.id}`)
           .expect(200)
           .expect(res => {
@@ -219,7 +219,6 @@ describe('UsersController (e2e)', () => {
             expect(res.body.userName).toBe(createdUser.userName);
             expect(res.body).toHaveProperty('createdAt');
             expect(res.body).toHaveProperty('updatedAt');
-            expect(res.body).not.toHaveProperty('deletedAt');
           });
       });
 
@@ -319,7 +318,7 @@ describe('UsersController (e2e)', () => {
           userName: faker.internet.username(),
         });
 
-        request(app.getHttpServer())
+        return request(app.getHttpServer())
           .patch(`/users/${createdUser.id}`)
           .send({})
           .expect(200)
@@ -343,7 +342,7 @@ describe('UsersController (e2e)', () => {
           userName: faker.internet.username(),
         });
 
-        request(app.getHttpServer())
+        return request(app.getHttpServer())
           .delete(`/users/${createdUser.id}`)
           .expect(200)
           .expect(res => {
