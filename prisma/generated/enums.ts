@@ -28,7 +28,7 @@ export type TerminalStatus = (typeof TerminalStatus)[keyof typeof TerminalStatus
 export const ItemStatus = {
   Available: 'Available',
   Unavailable: 'Unavailable',
-  SoldOut: 'SoldOut'
+  SoldOut: 'Sold Out'
 } as const
 
 export type ItemStatus = (typeof ItemStatus)[keyof typeof ItemStatus]
@@ -36,7 +36,7 @@ export type ItemStatus = (typeof ItemStatus)[keyof typeof ItemStatus]
 
 export const PaymentStatus = {
   Paid: 'Paid',
-  PartiallyPaid: 'PartiallyPaid',
+  PartiallyPaid: 'Partially Paid',
   Voided: 'Voided',
   Refunded: 'Refunded'
 } as const
@@ -45,22 +45,22 @@ export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]
 
 
 export const PaymentMethod = {
-  CreditCard: 'CreditCard',
+  CreditCard: 'Credit Card',
   Cash: 'Cash',
   Voucher: 'Voucher',
-  GiftCard: 'GiftCard'
+  GiftCard: 'Gift Card'
 } as const
 
 export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod]
 
 
 export const UserRole = {
-  HMCAdmin: 'HMCAdmin',
+  HMCAdmin: 'HMC Admin',
   Admin: 'Admin',
-  FohManager: 'FohManager',
-  Foh: 'Foh',
-  BohManager: 'BohManager',
-  Boh: 'Boh'
+  FohManager: 'FOH Manager',
+  Foh: 'FOH',
+  BohManager: 'BOH Manager',
+  Boh: 'BOH'
 } as const
 
 export type UserRole = (typeof UserRole)[keyof typeof UserRole]
