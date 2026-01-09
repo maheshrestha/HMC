@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
-import { UserRole } from 'prisma/generated/client';
+import { UserRole } from 'prisma/generated/enums';
 import { PrismaService } from '../src/infra/database/prisma/prisma.service';
 import { GlobalExceptionFilter } from '@src/common/filters/global-exception.filter';
 import { UsersService } from '@src/modules/users/users.service';

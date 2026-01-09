@@ -22,7 +22,8 @@
       "@modules/*": ["./src/modules/*"],
       "@common/*": ["./src/common/*"],
       "@database/*": ["./src/infra/database/*"],
-      "@test/*": ["./test/*"]
+      "@test/*": ["./test/*"],
+      "prisma/generated/*": ["./prisma/generated/*"]
     },
   }
 }

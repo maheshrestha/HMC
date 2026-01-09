@@ -17,7 +17,14 @@ export const prismaErrorExtension = Prisma.defineExtension({
           return await query(args);
         } catch (e: unknown) {
           if (e instanceof Prisma.PrismaClientKnownRequestError) {
-            const field = e.meta?.target?.[0];
+            let field = e.meta?.target?.[0];
+
+            // If target is not in meta, try to extract from error message
+            if (!field && e.code === 'P2002') {
+              const match = e.message.match(/fields?: \(`"?([^`"]+)"?`\)/);
+              field = match ? match[1] : null;
+            }
+
             switch (e.code) {
               case 'P2002':
                 if (field) {

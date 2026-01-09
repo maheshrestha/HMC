@@ -23,10 +23,11 @@ import {
   ApiInternalServerErrorResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { User } from 'prisma/generated/client';
+// import { User } from '@nestjs/swagger';
 import { GetCurrentUser } from '@modules/auth/decorators/get-current-user.decorator';
 import { CurrentUser } from '@modules/auth/dto/current-user.dto';
 import { Public } from '@modules/auth/decorators/public.decorator';
+import { User } from 'prisma/generated/client';
 
 @ApiTags('users')
 @Controller('users')
