@@ -66,10 +66,10 @@ jobs:
           node-version: '22'
 
           # Cache npm's downloaded packages between workflow runs.
-          cache: 'npm'
+          cache: 'yarn'
 
           # Tell the action where the npm lock file is located.
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: yarn.lock
 
       # Install exactly the dependencies recorded in package-lock.json.
       - name: Install dependencies
