@@ -1,0 +1,227 @@
+
+# Name displayed in the GitHub Actions workflow list.
+name: Deploy Backend to ECS
+
+# Define the events that trigger this workflow.
+on:
+  # Automatically run when code is pushed to these branches.
+  push:
+    branches:
+      - main       # Pushes to main trigger a production deployment.
+      - develop    # Pushes to develop trigger a development deployment.
+
+    # Only run on pushes that modify backend files or this workflow.
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+
+  # Allow a user to start the workflow manually from GitHub Actions.
+  workflow_dispatch:
+    inputs:
+      environment:
+        # Displayed description for the environment selector.
+        description: 'Environment to deploy to'
+
+        # Require the user to select an environment.
+        required: true
+
+        # Use dev as the default manual deployment target.
+        default: 'dev'
+
+        # Display a dropdown rather than a free-text input.
+        type: choice
+
+        # Only allow these environment values.
+        options:
+          - dev
+          - prod
+
+# Environment variables available to all jobs and steps.
+env:
+  # AWS region where ECR and ECS resources are hosted.
+  AWS_REGION: ap-southeast-2
+
+# Define the jobs that make up the pipeline.
+jobs:
+
+  # Job 1: Install dependencies and run automated tests.
+  test:
+    # Name shown in the GitHub Actions interface.
+    name: Test Backend
+
+    # Run the job on a fresh Ubuntu virtual machine.
+    runs-on: ubuntu-latest
+
+    # Steps execute sequentially within this job.
+    steps:
+
+      # Download the repository contents into the runner.
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Install the Node.js runtime required by the backend.
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          # Use Node.js 22; change this to match your project.
+          node-version: '22'
+
+          # Cache npm's downloaded packages between workflow runs.
+          cache: 'npm'
+
+          # Tell the action where the npm lock file is located.
+          cache-dependency-path: backend/package-lock.json
+
+      # Install exactly the dependencies recorded in package-lock.json.
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      # Execute the backend's Jest test suite.
+      - name: Run backend tests
+        working-directory: backend
+        # --runInBand runs Jest tests serially in one process.
+        run: npm test -- --runInBand
+
+  # Job 2: Build the Docker image and deploy the backend.
+  deploy:
+    # Name shown in the GitHub Actions interface.
+    name: Deploy to ECS
+
+    # Use a fresh Ubuntu virtual machine for deployment.
+    runs-on: ubuntu-latest
+
+    # Do not start this job unless the test job succeeds.
+    needs: test
+
+    # Steps execute sequentially within the deployment job.
+    steps:
+
+      # Download the repository contents for the deployment job.
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Determine whether this deployment targets dev or prod.
+      - name: Set environment
+        id: set-env
+        shell: bash
+
+        # Pass GitHub event details into environment variables.
+        # This avoids inserting event values directly into shell code.
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_ENVIRONMENT: ${{ inputs.environment }}
+          GIT_REF: ${{ github.ref }}
+
+        # Write the selected environment to GitHub Actions output.
+        run: |
+          # Manual runs use the environment selected in the UI.
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "ENV=$INPUT_ENVIRONMENT" >> "$GITHUB_OUTPUT"
+
+          # Pushes to main deploy to production.
+          elif [ "$GIT_REF" = "refs/heads/main" ]; then
+            echo "ENV=prod" >> "$GITHUB_OUTPUT"
+
+          # All other qualifying branch pushes deploy to dev.
+          else
+            echo "ENV=dev" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Authenticate the AWS CLI and subsequent AWS actions.
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          # Read the AWS access key from GitHub repository secrets.
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+
+          # Read the corresponding secret key securely.
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+          # Configure AWS commands to use the specified region.
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Authenticate Docker with Amazon Elastic Container Registry.
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Build the Docker image and publish it to the selected ECR repository.
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+
+        # Define variables used by the shell commands below.
+        env:
+          # Obtain the registry URL from the ECR login action.
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+
+          # Select a separate repository for dev or prod.
+          ECR_REPOSITORY: hmc-backend-${{ steps.set-env.outputs.ENV }}
+
+          # Use the Git commit SHA as a unique image tag.
+          IMAGE_TAG: ${{ github.sha }}
+
+        # Execute Docker commands from the backend directory.
+        working-directory: backend
+
+        # Build and push the image.
+        run: |
+          # Build the Docker image and tag it with the commit SHA.
+          docker build \
+            -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
+            .
+
+          # Push the uniquely tagged image to ECR.
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+          # Export the image URI for later steps and logging.
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
+            >> "$GITHUB_OUTPUT"
+
+      # Ask ECS to start a new deployment of the selected service.
+      - name: Update ECS service
+        env:
+          # Select the ECS cluster corresponding to the environment.
+          CLUSTER_NAME: hmc-backend-${{ steps.set-env.outputs.ENV }}
+
+          # Select the ECS service corresponding to the environment.
+          SERVICE_NAME: hmc-backend-${{ steps.set-env.outputs.ENV }}
+
+        # Execute the AWS CLI command to update the service.
+        run: |
+          aws ecs update-service \
+            --cluster "$CLUSTER_NAME" \
+            --service "$SERVICE_NAME" \
+            --force-new-deployment \
+            --region "$AWS_REGION"
+
+      # Wait until ECS reports the service as stable.
+      - name: Wait for service stability
+        env:
+          # Use the same cluster targeted by the deployment.
+          CLUSTER_NAME: hmc-backend-${{ steps.set-env.outputs.ENV }}
+
+          # Use the same service targeted by the deployment.
+          SERVICE_NAME: hmc-backend-${{ steps.set-env.outputs.ENV }}
+
+        # The command exits unsuccessfully if stability is not reached
+        # within the AWS CLI waiter's configured retry period.
+        run: |
+          aws ecs wait services-stable \
+            --cluster "$CLUSTER_NAME" \
+            --services "$SERVICE_NAME" \
+            --region "$AWS_REGION"
+
+      # Report success only after the preceding steps have succeeded.
+      - name: Deployment successful
+        env:
+          # Capture the environment selected earlier in the workflow.
+          DEPLOY_ENV: ${{ steps.set-env.outputs.ENV }}
+
+          # Capture the URI of the image published to ECR.
+          IMAGE: ${{ steps.build-image.outputs.image }}
+
+        # Print a summary in the GitHub Actions logs.
+        run: |
+          echo "Deployment to $DEPLOY_ENV completed successfully!"
+          echo "Image: $IMAGE"
