@@ -51,6 +51,27 @@ jobs:
     # Run the job on a fresh Ubuntu virtual machine.
     runs-on: ubuntu-latest
 
+
+    # Start a temporary PostgreSQL database for E2E tests.
+    services:
+      postgres_test:
+        image: postgres:16
+        env:
+          POSTGRES_DB: hmc_test
+          POSTGRES_USER: hmc_test
+          POSTGRES_PASSWORD: hmc_test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U hmc_test -d hmc_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    # Make the test database URL available to all test steps.
+    env:
+      DATABASE_URL: postgresql://hmc_test:hmc_test_password@localhost:5432/hmc_test?schema=public
+
     # Steps execute sequentially within this job.
     steps:
 
@@ -65,20 +86,24 @@ jobs:
           # Use Node.js 22; change this to match your project.
           node-version: '22'
 
-          # Cache npm's downloaded packages between workflow runs.
+          # Cache yarn's downloaded packages between workflow runs.
           cache: 'yarn'
 
-          # Tell the action where the npm lock file is located.
+          # Tell the action where the yarn lock file is located.
           cache-dependency-path: yarn.lock
 
       # Install exactly the dependencies recorded in package-lock.json.
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      # Execute the backend's Jest test suite.
-      - name: Run backend tests
+      # Execute the backend's Jest unit test suite.
+      - name: Run backend unit tests
         # --runInBand runs Jest tests serially in one process.
         run: yarn test -- --runInBand
+
+      # Execute the backend's Jest e2e test suite.
+      - name: Run backend E2E tests
+        run: yarn test:e2e --runInBand
 
   # Job 2: Build the Docker image and deploy the backend.
   deploy:
@@ -106,9 +131,9 @@ jobs:
         # Pass GitHub event details into environment variables.
         # This avoids inserting event values directly into shell code.
         env:
-          EVENT_NAME: ${{ github.event_name }}
-          INPUT_ENVIRONMENT: ${{ inputs.environment }}
-          GIT_REF: ${{ github.ref }}
+          EVENT_NAME: ${{ github.event_name }} # What triggered the workflow. eg. push or workflow_dispatch
+          INPUT_ENVIRONMENT: ${{ inputs.environment }} # Environment selected by the user when manually running the workflow. eg. dev or prod
+          GIT_REF: ${{ github.ref }} # Full Git reference for the branch or tag. eg. refs/heads/main
 
         # Write the selected environment to GitHub Actions output.
         run: |
