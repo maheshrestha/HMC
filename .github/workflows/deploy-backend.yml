@@ -73,12 +73,12 @@ jobs:
 
       # Install exactly the dependencies recorded in package-lock.json.
       - name: Install dependencies
-        run: npm ci
+        run: yarn install --frozen-lockfile
 
       # Execute the backend's Jest test suite.
       - name: Run backend tests
         # --runInBand runs Jest tests serially in one process.
-        run: npm test -- --runInBand
+        run: yarn test -- --runInBand
 
   # Job 2: Build the Docker image and deploy the backend.
   deploy:
