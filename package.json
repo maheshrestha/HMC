@@ -18,7 +18,7 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "yarn docker-test:up && yarn db-test:deploy && DOTENV_CONFIG_PATH=.env.test jest --config ./test/jest-e2e.ts && yarn docker-test:down",
+    "test:e2e": "yarn docker-test:up && yarn db-test:deploy && DOTENV_CONFIG_PATH=.env.test jest --config ./test/jest-e2e.ts --runInBand && yarn docker-test:down",
     "prepare": "husky",
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate deploy",

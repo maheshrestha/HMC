@@ -51,26 +51,9 @@ jobs:
     # Run the job on a fresh Ubuntu virtual machine.
     runs-on: ubuntu-latest
 
-
-    # Start a temporary PostgreSQL database for E2E tests.
-    services:
-      postgres_test:
-        image: postgres:16
-        env:
-          POSTGRES_DB: hmc_test
-          POSTGRES_USER: hmc_test
-          POSTGRES_PASSWORD: hmc_test_password
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U hmc_test -d hmc_test"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-
     # Make the test database URL available to all test steps.
     env:
-      DATABASE_URL: postgresql://hmc_test:hmc_test_password@localhost:5432/hmc_test?schema=public
+      DATABASE_URL: postgresql://hmc_test_user:hmc_test_password@localhost:5435/hmc_test_db?schema=public
 
     # Steps execute sequentially within this job.
     steps:
