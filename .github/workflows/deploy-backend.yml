@@ -10,10 +10,9 @@ on:
       - main       # Pushes to main trigger a production deployment.
       - develop    # Pushes to develop trigger a development deployment.
 
-    # Only run on pushes that modify backend files or this workflow.
+    # Run on pushes that modify any file
     paths:
-      - 'backend/**'
-      - '.github/workflows/deploy-backend.yml'
+      - '**'
 
   # Allow a user to start the workflow manually from GitHub Actions.
   workflow_dispatch:
@@ -70,16 +69,14 @@ jobs:
           cache: 'npm'
 
           # Tell the action where the npm lock file is located.
-          cache-dependency-path: backend/package-lock.json
+          cache-dependency-path: package-lock.json
 
       # Install exactly the dependencies recorded in package-lock.json.
       - name: Install dependencies
-        working-directory: backend
         run: npm ci
 
       # Execute the backend's Jest test suite.
       - name: Run backend tests
-        working-directory: backend
         # --runInBand runs Jest tests serially in one process.
         run: npm test -- --runInBand
 
@@ -160,9 +157,6 @@ jobs:
 
           # Use the Git commit SHA as a unique image tag.
           IMAGE_TAG: ${{ github.sha }}
-
-        # Execute Docker commands from the backend directory.
-        working-directory: backend
 
         # Build and push the image.
         run: |
