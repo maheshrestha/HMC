@@ -86,7 +86,7 @@ jobs:
 
       # Execute the backend's Jest e2e test suite.
       - name: Run backend E2E tests
-        run: yarn test:e2e --runInBand
+        run: yarn test:e2e
 
   # Job 2: Build the Docker image and deploy the backend.
   deploy:
