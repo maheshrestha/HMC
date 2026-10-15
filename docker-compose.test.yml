@@ -1,18 +1,20 @@
-# Set the version of docker compose to use
-version: '3.9'
-
 # Create a db for dev
 services:
   db_test:
     image: postgres:13
-    # command: postgres -c 'max_connections=5'
-    restart: always
     container_name: hmc_test_db_container
     ports:
-      - '5435:5432'
+      - "5435:5432"
     environment:
       POSTGRES_USER: hmc_test_user
       POSTGRES_PASSWORD: hmc_test_password
       POSTGRES_DB: hmc_test_db
     platform: linux/amd64
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hmc_test_user -d hmc_test_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
 

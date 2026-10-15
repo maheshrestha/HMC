@@ -29,7 +29,7 @@
     "db:generate-migration": "prisma migrate dev --create-only",
     "db-test:deploy": "dotenv -e .env.test prisma migrate deploy",
     "lint-staged": "lint-staged",
-    "docker-test:up": "docker compose -f docker-compose.test.yml -p hmc_test up -d",
+    "docker-test:up": "docker compose -f docker-compose.test.yml -p hmc_test up -d --wait --wait-timeout 60",
     "docker-test:down": "docker compose -f docker-compose.test.yml -p hmc_test down --remove-orphans",
     "docker:build": "docker build -t hmc-backend:latest .",
     "docker:run": "docker run -p 3000:3000 --env-file .env hmc-backend:latest",
