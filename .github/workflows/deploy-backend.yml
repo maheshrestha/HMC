@@ -102,7 +102,7 @@ jobs:
     # Steps execute sequentially within the deployment job.
     steps:
 
-      # Download the repository contents for the deployment job.
+      # Checkout/download the repository contents for the deployment job.
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -160,7 +160,7 @@ jobs:
           # Obtain the registry URL from the ECR login action.
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
 
-          # Select a separate repository for dev or prod.
+          # Chooses which ECR repository to use based on the environment selected eg. hmc-backend-dev or hmc-backend-prod.
           ECR_REPOSITORY: hmc-backend-${{ steps.set-env.outputs.ENV }}
 
           # Use the Git commit SHA as a unique image tag.
@@ -168,13 +168,12 @@ jobs:
 
         # Build and push the image.
         run: |
-          # Build the Docker image and tag it with the commit SHA.
-          docker build \
-            -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
-            .
-
-          # Push the uniquely tagged image to ECR.
-          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          # Build the Docker image and tag it with the commit SHA and Push the uniquely tagged image to ECR.
+          docker buildx build \
+          --platform linux/arm64 \
+          --tag "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
+          --push \
+          .
 
           # Export the image URI for later steps and logging.
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
